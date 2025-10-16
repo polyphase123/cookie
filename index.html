@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Radiation Effects Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest/dist/chartjs-plugin-annotation.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 */
+            color: #1f2937; /* text-gray-800 */
+        }
+        .card {
+            background-color: #ffffff; /* bg-white */
+            border: 1px solid #e2e8f0; /* border-slate-200 */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 240px;
+            background-color: #1e293b; /* bg-slate-800 */
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -120px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #38bdf8; /* bg-sky-400 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid #ffffff; /* bg-white */
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #38bdf8;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            color: #475569; /* text-slate-600 */
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-button.active {
+            color: #0ea5e9; /* text-sky-500 */
+            border-bottom-color: #0ea5e9; /* border-sky-500 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .fact-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .fact-item:hover {
+            background-color: #f1f5f9; /* bg-slate-100 */
+        }
+        .fact-item i {
+            color: #38bdf8; /* text-sky-400 */
+            font-size: 1.25rem;
+            margin-top: 0.25rem;
+        }
+        .header-gradient {
+            background: linear-gradient(90deg, #0ea5e9, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .medical-count:disabled {
+            background-color: #e2e8f0; /* border-slate-200 */
+            cursor: not-allowed;
+        }
+        .info-card {
+            border-left-width: 4px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 header-gradient">Advanced Radiation Effects Simulator</h1>
+            <p class="text-lg text-slate-600">An engineering and health physics educational tool.</p>
+        </header>
+        
+        <!-- Tabs -->
+        <div class="mb-8 border-b border-slate-200">
+            <nav class="-mb-px flex flex-wrap justify-center gap-x-2 md:gap-x-8" aria-label="Tabs">
+                <button class="tab-button active" data-tab="annualDose"><i class="fa-solid fa-calculator"></i>Annual Dose</button>
+                <button class="tab-button" data-tab="doseSpectrum"><i class="fa-solid fa-chart-bar"></i>Dose Spectrum</button>
+                <button class="tab-button" data-tab="acuteEffects"><i class="fa-solid fa-biohazard"></i>Acute Effects</button>
+                <button class="tab-button" data-tab="shielding"><i class="fa-solid fa-shield-halved"></i>Shielding</button>
+                <button class="tab-button" data-tab="decay"><i class="fa-solid fa-atom"></i>Decay</button>
+                <button class="tab-button" data-tab="facts"><i class="fa-solid fa-circle-info"></i>Facts & Safety</button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-container">
+            <!-- Annual Dose & Cancer Risk Tab -->
+            <div id="annualDose" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Estimate Your Annual Dose</h2>
+                        <p class="text-slate-600 mb-6">Calculate your approximate yearly radiation dose from common sources.</p>
+                         <div class="space-y-4">
+                            <div>
+                                <label for="location" class="block text-sm font-medium text-slate-700">Where do you live?</label>
+                                <select id="location" class="mt-1 block w-full bg-slate-50 border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                                    <option value="low">Sea Level (e.g., Manila)</option>
+                                    <option value="high">High Altitude (e.g., Baguio)</option>
+                                    <option value="avg" selected>Average Altitude (Philippines Avg.)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="flights" class="block text-sm font-medium text-slate-700">Domestic flights (Philippines) per year?</label>
+                                <input type="number" id="flights" value="0" min="0" class="mt-1 block w-full bg-slate-50 border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Medical Exams this year?</label>
+                                <div class="space-y-3" id="medical-exams-container">
+                                    <!-- Medical exams will be populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <button id="reset-button" class="mt-6 w-full bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-300 transition-colors">Reset</button>
+                    </div>
+                    <div class="space-y-8">
+                        <div class="info-card bg-sky-50 border-sky-500">
+                             <h2 class="text-2xl font-bold text-sky-900 mb-4">Calculation Results</h2>
+                             <div class="text-center">
+                                <p class="text-sky-800">Your Estimated Annual Dose:</p>
+                                <p id="total-dose" class="text-4xl font-bold text-sky-600">0.40 mSv</p>
+                                <p id="dose-comparison" class="text-sm text-sky-700 mt-1">Equivalent to the average natural background dose in the Philippines.</p>
+                            </div>
+                        </div>
+                        <div class="info-card bg-purple-50 border-purple-500">
+                            <h2 class="text-2xl font-bold text-purple-900 mb-4">Stochastic Effects: Cancer Risk</h2>
+                            <p class="text-purple-800 mb-4">This estimates the additional lifetime risk of fatal cancer based on your annual dose, using the Linear No-Threshold (LNT) model.</p>
+                            <div class="text-center">
+                                 <p class="text-purple-800">Additional Lifetime Fatal Cancer Risk:</p>
+                                <p id="cancer-risk" class="text-4xl font-bold text-purple-600">~0.0022%</p>
+                                <p id="risk-comparison" class="text-sm text-purple-700 mt-1">This is added to the baseline lifetime risk of ~42% from all other causes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dose Spectrum Tab -->
+            <div id="doseSpectrum" class="tab-content">
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4">Radiation Dose Spectrum</h2>
+                    <p class="text-slate-600 mb-6">Click an item to see its single-event or equivalent annual dose. The scale is logarithmic.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                        <div class="info-card bg-cyan-50 border-cyan-500 text-cyan-800">
+                            <p class="font-bold"><i class="fa-solid fa-user-doctor mr-2"></i>Occupational Dose Limit</p>
+                            <p><strong>50 mSv per year.</strong> This is the maximum dose allowed for a person who works with radiation (e.g., nuclear plant worker, radiographer).</p>
+                        </div>
+                        <div class="info-card bg-teal-50 border-teal-500 text-teal-800">
+                            <p class="font-bold"><i class="fa-solid fa-users mr-2"></i>General Public Dose Limit</p>
+                            <p><strong>1 mSv per year.</strong> This is the maximum allowed dose to a member of the public from licensed nuclear activities (in addition to background and medical).</p>
+                        </div>
+                    </div>
+                    <div id="spectrum-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center">
+                        <!-- Spectrum items will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acute Effects Tab -->
+            <div id="acuteEffects" class="tab-content">
+                 <div class="card">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Acute Exposure Simulator (Deterministic Effects)</h2>
+                    <p class="text-slate-600 mb-6">See the effects of a single, large, whole-body dose. <span class="font-bold text-red-600">This applies to catastrophic events only.</span></p>
+                    <div>
+                        <label for="ars-dose-slider" class="block font-medium text-slate-700">Dose in Sieverts (Sv): <span id="ars-dose-value" class="font-bold text-sky-600">1 Sv</span></label>
+                        <input id="ars-dose-slider" type="range" min="0" max="25" step="0.1" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+                    <div id="ars-results-card" class="mt-6 info-card bg-slate-50 border-slate-500">
+                        <h3 id="ars-syndrome-name" class="text-xl font-bold mb-2"></h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div><p class="font-semibold text-slate-500">Key Symptoms:</p><p id="ars-symptoms" class="text-slate-800"></p></div>
+                            <div><p class="font-semibold text-slate-500">Prognosis:</p><p id="ars-prognosis" class="text-slate-800"></p></div>
+                            <div><p class="font-semibold text-slate-500">Onset of Initial Symptoms:</p><p id="ars-onset" class="text-slate-800"></p></div>
+                            <div><p class="font-semibold text-slate-500">Timeframe:</p><p id="ars-timeframe" class="text-slate-800"></p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shielding Tab -->
+            <div id="shielding" class="tab-content">
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Engineering: Shielding Calculator</h2>
+                    <p class="text-slate-600 mb-6">Calculate how different materials reduce the intensity of gamma radiation. This demonstrates the concept of Half-Value Layers (HVL).</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="shielding-source" class="block text-sm font-medium text-slate-700">Radiation Source</label>
+                                    <select id="shielding-source" class="mt-1 block w-full bg-slate-50 border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                                        <!-- Options populated by JS -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="shielding-material" class="block text-sm font-medium text-slate-700">Shielding Material</label>
+                                    <select id="shielding-material" class="mt-1 block w-full bg-slate-50 border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                                        <option value="lead">Lead (Pb)</option>
+                                        <option value="concrete">Concrete</option>
+                                        <option value="water">Water (H₂O)</option>
+                                        <option value="steel">Steel (Fe)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="shielding-thickness" class="block font-medium text-slate-700">Shield Thickness: <span id="shielding-thickness-value" class="font-bold text-sky-600">5 cm</span></label>
+                                    <input id="shielding-thickness" type="range" min="0" max="100" step="0.5" value="5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-card bg-sky-50 border-sky-500 flex flex-col justify-center text-center">
+                             <p class="text-sky-800">Dose Rate (100 mSv/hr initial):</p>
+                             <p id="shielded-dose" class="text-4xl font-bold text-sky-600">50.0 mSv/hr</p>
+                             <p id="hvl-info" class="text-sm text-sky-700 mt-2">HVL for this combo: X cm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decay Tab -->
+            <div id="decay" class="tab-content">
+                <div class="card">
+                     <h2 class="text-2xl font-bold text-slate-900 mb-2">Engineering: Radioactive Decay Simulator</h2>
+                    <p class="text-slate-600 mb-6">See how the activity of a radioactive source decreases over time based on its half-life.</p>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                             <div class="space-y-4">
+                                <div>
+                                    <label for="decay-isotope" class="block text-sm font-medium text-slate-700">Radioisotope</label>
+                                    <select id="decay-isotope" class="mt-1 block w-full bg-slate-50 border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                                        <!-- Options will be populated by JS -->
+                                    </select>
+                                </div>
+                                 <div>
+                                    <label for="decay-time" class="block font-medium text-slate-700">Time Elapsed: <span id="decay-time-value" class="font-bold text-sky-600">0 years</span></label>
+                                    <input id="decay-time" type="range" min="0" max="100" step="1" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
+                                </div>
+                             </div>
+                             <div class="mt-6 info-card bg-sky-50 border-sky-500 text-center">
+                                <p class="text-sky-800">Remaining Activity (100% initial):</p>
+                                <p id="decay-activity" class="text-3xl font-bold text-sky-600">100.0%</p>
+                                <p id="decay-info" class="text-sm text-sky-700 mt-1">Half-life: Y years</p>
+                            </div>
+                        </div>
+                        <div>
+                            <canvas id="decayChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Facts & Safety Tab -->
+            <div id="facts" class="tab-content">
+                <div class="space-y-8">
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Types of Ionizing Radiation & Their Dangers</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="info-card bg-amber-50 border-amber-500">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <i class="fa-solid fa-cookie-bite text-amber-600 text-3xl"></i>
+                                    <h3 class="text-xl font-bold text-amber-800">Alpha (α)</h3>
+                                </div>
+                                <p class="text-amber-700">A heavy particle (2 protons, 2 neutrons). A helium nucleus.</p>
+                                <p class="font-semibold mt-2 text-red-700">Danger: Internal hazard. Very damaging if inhaled or ingested, but cannot penetrate skin.</p>
+                                <p class="font-semibold mt-1 text-green-700">Stopped by: A sheet of paper, skin.</p>
+                            </div>
+                            <div class="info-card bg-blue-50 border-blue-500">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <i class="fa-solid fa-cookie text-blue-600 text-3xl"></i>
+                                    <h3 class="text-xl font-bold text-blue-800">Beta (β)</h3>
+                                </div>
+                                <p class="text-blue-700">A light particle. A high-speed electron or positron.</p>
+                                <p class="font-semibold mt-2 text-red-700">Danger: External (skin burns) and internal hazard. Can penetrate skin slightly.</p>
+                                <p class="font-semibold mt-1 text-green-700">Stopped by: Plastic, aluminum foil.</p>
+                            </div>
+                            <div class="info-card bg-purple-50 border-purple-500">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <i class="fa-solid fa-compact-disc text-purple-600 text-3xl"></i>
+                                    <h3 class="text-xl font-bold text-purple-800">Gamma (γ)</h3>
+                                </div>
+                                <p class="text-purple-700">A high-energy wave. A photon, like an X-ray.</p>
+                                <p class="font-semibold mt-2 text-red-700">Danger: External hazard. Highly penetrating and passes through the body.</p>
+                                <p class="font-semibold mt-1 text-green-700">Stopped by: Thick lead, dense concrete.</p>
+                            </div>
+                            <div class="info-card bg-gray-100 border-gray-500">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <i class="fa-solid fa-circle-dot text-gray-600 text-3xl"></i>
+                                    <h3 class="text-xl font-bold text-gray-800">Neutron (n)</h3>
+                                </div>
+                                <p class="text-gray-700">A heavy particle with no charge from nuclear fission.</p>
+                                <p class="font-semibold mt-2 text-red-700">Danger: External hazard. Makes other materials radioactive (activation).</p>
+                                <p class="font-semibold mt-1 text-green-700">Stopped by: Water, concrete, paraffin wax.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Why Take Iodine Tablets in a Nuclear Emergency?</h2>
+                        <div class="flex items-start gap-4">
+                            <i class="fa-solid fa-pills text-sky-500 text-3xl mt-1"></i>
+                            <div>
+                                <p class="text-slate-600 mb-4">During a nuclear reactor accident, large amounts of radioactive iodine (like Iodine-131) can be released. The thyroid gland naturally absorbs iodine from the bloodstream to function.</p>
+                                <p class="text-slate-600 mb-4">If radioactive iodine is inhaled or ingested, it will concentrate in the thyroid, delivering a high radiation dose and significantly increasing the risk of thyroid cancer, especially in children.</p>
+                                <p class="text-slate-700 font-semibold bg-sky-50 p-3 rounded-lg border border-sky-200">By taking Potassium Iodide (KI) tablets, you saturate your thyroid with safe, stable iodine. This prevents it from absorbing the dangerous radioactive iodine, which is then harmlessly flushed from the body.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Human Impact of Major Nuclear Events</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-100 text-xs text-slate-700 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-3">Event</th>
+                                        <th class="px-4 py-3">Direct Fatalities</th>
+                                        <th class="px-4 py-3">Long-Term Health Impact</th>
+                                        <th class="px-4 py-3">Population Affected</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-slate-200">
+                                        <td class="px-4 py-3 font-semibold">Hiroshima & Nagasaki (1945)</td>
+                                        <td class="px-4 py-3">~150,000 - 246,000</td>
+                                        <td class="px-4 py-3">Increased risk of leukemia and solid cancers among survivors. The Life Span Study cohort is the primary source for radiation risk models.</td>
+                                        <td class="px-4 py-3">~300,000 initial survivors.</td>
+                                    </tr>
+                                    <tr class="border-b border-slate-200">
+                                        <td class="px-4 py-3 font-semibold">Chernobyl (1986)</td>
+                                        <td class="px-4 py-3">28 (first responders from ARS) + 19 (later deaths) = 47 confirmed.</td>
+                                        <td class="px-4 py-3">~6,000+ cases of thyroid cancer in children/adolescents. Models predict up to 4,000 excess cancer deaths in the most exposed groups.</td>
+                                        <td class="px-4 py-3">~600,000 "liquidators" (cleanup workers). ~350,000 people evacuated.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Fukushima (2011)</td>
+                                        <td class="px-4 py-3">0 from radiation. ~2,300 "disaster-related deaths" from evacuation stress.</td>
+                                        <td class="px-4 py-3">No discernible increase in radiation-related health effects is expected by UNSCEAR due to low public doses. 1 worker death recognized as radiation-caused.</td>
+                                        <td class="px-4 py-3">~160,000 people evacuated.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Fun Facts About Radiation</h2>
+                        <div class="space-y-4">
+                            <div class="fact-item"><i class="fa-solid fa-banana"></i><div><span class="font-bold">The Banana Dose:</span> Eating one banana exposes you to ~0.0001 mSv from naturally occurring Potassium-40. It's a common unit for trivial radiation doses.</div></div>
+                            <div class="fact-item"><i class="fa-solid fa-house-chimney-crack"></i><div><span class="font-bold">Radioactive Homes:</span> The single largest source of natural radiation for most people is radon gas seeping into their homes from the ground.</div></div>
+                            <div class="fact-item"><i class="fa-solid fa-earth-americas"></i><div><span class="font-bold">Natural Reactors:</span> About 2 billion years ago, a natural nuclear fission reactor existed in what is now Oklo, Gabon, Africa, running for hundreds of thousands of years.</div></div>
+                            <div class="fact-item"><i class="fa-solid fa-smog"></i><div><span class="font-bold">Smoky Radiation:</span> The annual dose to the lungs of a pack-a-day smoker can be equivalent to getting hundreds of chest x-rays due to Polonium-210 in tobacco.</div></div>
+                            <div class="fact-item"><i class="fa-solid fa-gem"></i><div><span class="font-bold">Irradiated Gemstones:</span> Some gemstones, like blue topaz, are irradiated in a reactor to enhance their color. They are stored until their radioactivity decays to safe levels.</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <footer class="text-center mt-12 text-slate-500 text-sm">
+             <p>Disclaimer: This is a simplified educational tool. All values are approximate and based on averages from referenced materials. Consult with a qualified professional for medical or safety advice.</p>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DATA from PDF and other sources --- //
+    const DOSE_DATA = {
+        location: { low: 0.35, avg: 0.40, high: 0.55 },
+        flight: 0.015,
+        medical: { 
+            'dental-xray': { dose: 0.005, name: 'Dental X-ray' },
+            'chest-xray': { dose: 0.1, name: 'Chest X-ray' },
+            'mammogram': { dose: 0.4, name: 'Mammogram' },
+            'head-ct': { dose: 2, name: 'Head CT Scan' },
+            'abdomen-ct': { dose: 10, name: 'Abdomen CT Scan' },
+            'pet-ct': { dose: 25, name: 'PET/CT Scan' }
+        }
+    };
+
+    const SPECTRUM_DATA = [
+        { name: "Sleeping Next to Someone", dose: 0.00005, info: "Dose from the other person's natural Potassium-40 (annual)." },
+        { name: "Eating a Banana", dose: 0.0001, info: "Contains naturally radioactive Potassium-40." },
+        { name: "Dental X-ray", dose: 0.005, info: "A very low dose medical imaging procedure." },
+        { name: "Living near Nuclear Plant", dose: 0.01, info: "Typical additional dose per year." },
+        { name: "Three Mile Island", dose: 0.01, info: "Max dose to a person at site boundary. General public dose was much lower." },
+        { name: "PH Domestic Flight", dose: 0.015, info: "Increased cosmic radiation at high altitude." },
+        { name: "Chest X-ray", dose: 0.1, info: "Equivalent to about 3 months of PH background radiation." },
+        { name: "Mammogram", dose: 0.4, info: "A screening procedure; equivalent to about one year of PH background radiation." },
+        { name: "Grand Central Station", dose: 1.2, info: "Annual dose from standing in the station due to granite's natural radioactivity." },
+        { name: "Lumbar Spine X-ray", dose: 1.5, info: "Higher dose than a chest x-ray due to thicker anatomy." },
+        { name: "Smoking 1 Pack/Day", dose: 1.5, info: "Effective annual dose to lungs from Polonium-210 in tobacco." },
+        { name: "Head CT Scan", dose: 2, info: "A common high-detail scan." },
+        { name: "US Average Radon Dose", dose: 2.28, info: "Average annual dose from radon gas inhalation in the US." },
+        { name: "Airline Pilot", dose: 3, info: "Typical annual occupational dose from cosmic radiation." },
+        { name: "Barium Enema", dose: 6, info: "A fluoroscopic procedure with a significant dose." },
+        { name: "Bone Scan", dose: 6.3, info: "A nuclear medicine procedure using Tc-99m." },
+        { name: "Abdomen CT Scan", dose: 10, info: "Equivalent to over 20 years of PH background radiation." },
+        { name: "Fukushima Public", dose: 10, info: "Estimated avg. lifetime dose for adults in the most affected areas." },
+        { name: "Coronary CT Angiography", dose: 12, info: "A high-dose cardiac scan." },
+        { name: "ISS Astronaut", dose: 80, info: "Average dose for a 6-month mission on the International Space Station." },
+        { name: "Lowest Cancer Link", dose: 100, info: "Lowest dose clearly linked to increased cancer risk in population studies." },
+        { name: "Chernobyl Worker", dose: 120, info: "Avg. dose for registered cleanup workers ('liquidators')." },
+        { name: "Kyshtym Evacuee", dose: 520, info: "Max estimated dose to evacuated population from 1957 waste explosion." },
+        { name: "ARS Threshold", dose: 700, info: "Dose to cause initial symptoms of Acute Radiation Syndrome." },
+        { name: "Daigo Fukuryū Maru", dose: 2900, info: "Estimated dose to fisherman caught in Bikini Atoll (Castle Bravo) fallout." },
+        { name: "LD 50/60 Dose", dose: 4000, info: "Lethal dose for 50% of people within 60 days without medical care." },
+        { name: "Goiânia Victim", dose: 7000, info: "Dose received by one of the fatal victims of the 1987 Cs-137 source accident." },
+        { name: "Hiroshima Survivor (1km)", dose: 9000, info: "Estimated dose for a survivor 1km from the hypocenter." },
+        { name: "Chernobyl Firefighter", dose: 10000, info: "Many first responders received doses in this range, which were fatal." },
+        { name: "Hisashi Ouchi", dose: 17000, info: "One of the highest recorded doses to a human. The dose was fatal." }
+    ].sort((a, b) => a.dose - b.dose);
+    
+    const ARS_DATA = [
+        { level: 0, name: "No Acute Radiation Syndrome", symptoms: "No immediate life-threatening symptoms. Increased long-term cancer risk is the primary concern.", onset: "N/A", timeframe: "N/A", prognosis: "Survival is certain from acute effects.", style: { bg: 'bg-slate-50', border: 'border-slate-500', text: 'text-slate-800' } },
+        { level: 1, minDose: 0.7, maxDose: 10, name: "Bone Marrow Syndrome (Hematopoietic)", symptoms: "Destruction of bone marrow, leading to infection and hemorrhage.", onset: "1-6 hours", timeframe: "Death within several months if it occurs.", prognosis: "Survival is possible, especially at lower end of dose range with medical care.", style: { bg: 'bg-amber-50', border: 'border-amber-500', text: 'text-amber-800' } },
+        { level: 2, minDose: 6, maxDose: 30, name: "Gastrointestinal (GI) Syndrome", symptoms: "Destruction of intestinal lining, leading to dehydration, electrolyte imbalance, and sepsis.", onset: "< 1 hour", timeframe: "Death within 2 weeks.", prognosis: "Survival is extremely unlikely.", style: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-800' } },
+        { level: 3, minDose: 20, maxDose: Infinity, name: "Cardiovascular (CV) / CNS Syndrome", symptoms: "Circulatory system collapse and brain swelling, leading to convulsions, coma.", onset: "Minutes", timeframe: "Death within 3 days.", prognosis: "Survival is impossible.", style: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' } },
+        { level: 4, name: "Beyond Catastrophic", symptoms: "Circulatory system collapse and brain swelling, leading to convulsions, coma.", onset: "Minutes", timeframe: "Death within 3 days.", prognosis: "Survival is impossible.", style: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' } }
+    ];
+
+    const HVL_DATA = { // in cm
+        'Americium-241 (60 keV)': { 'lead': 0.02, 'concrete': 1.8, 'steel': 0.25, 'water': 4.5 },
+        'Barium-133 (356 keV)': { 'lead': 0.2, 'concrete': 3.6, 'steel': 0.9, 'water': 7.8 },
+        'Cadmium-109 (88 keV)': { 'lead': 0.06, 'concrete': 2.2, 'steel': 0.35, 'water': 5.2 },
+        'Calcium-45 (Beta)': { 'lead': 0.03, 'concrete': 0.05, 'steel': 0.04, 'water': 0.06 },
+        'Carbon-14 (Beta)': { 'lead': 0.028, 'concrete': 0.03, 'steel': 0.03, 'water': 0.03 },
+        'Cesium-137 (662 keV)': {'lead': 0.65, 'concrete': 4.8, 'steel': 1.3, 'water': 10.4 },
+        'Chromium-51 (320 keV)': { 'lead': 0.17, 'concrete': 3.4, 'steel': 0.8, 'water': 7.5 },
+        'Cobalt-57 (122 keV)': { 'lead': 0.1, 'concrete': 2.5, 'steel': 0.5, 'water': 6.0 },
+        'Cobalt-60 (1.25 MeV)':  {'lead': 1.2,  'concrete': 6.2, 'steel': 2.1, 'water': 14.5 },
+        'Europium-152 (1.4 MeV)': { 'lead': 1.3, 'concrete': 6.5, 'steel': 2.2, 'water': 15.0 },
+        'Gallium-67 (Multiple)': { 'lead': 0.1, 'concrete': 2.6, 'steel': 0.5, 'water': 6.2 },
+        'Gold-198 (412 keV)': { 'lead': 0.28, 'concrete': 3.8, 'steel': 1.0, 'water': 8.2 },
+        'Iodine-125 (35 keV)': { 'lead': 0.002, 'concrete': 1.2, 'steel': 0.1, 'water': 2.0 },
+        'Iodine-131 (364 keV)':  {'lead': 0.22, 'concrete': 3.7, 'steel': 1.0, 'water': 8.1  },
+        'Indium-111 (245 keV)': { 'lead': 0.12, 'concrete': 3.1, 'steel': 0.7, 'water': 7.0 },
+        'Iridium-192 (316 keV)': { 'lead': 0.3, 'concrete': 4.5, 'steel': 1.2, 'water': 9.5 },
+        'Iron-59 (1.1 MeV)': { 'lead': 1.1, 'concrete': 5.8, 'steel': 1.9, 'water': 13.5 },
+        'Manganese-54 (835 keV)': { 'lead': 0.85, 'concrete': 5.2, 'steel': 1.6, 'water': 11.5 },
+        'Molybdenum-99 (740 keV)': { 'lead': 0.75, 'concrete': 5.0, 'steel': 1.5, 'water': 11.0 },
+        'Nickel-63 (Beta)': { 'lead': 0.02, 'concrete': 0.01, 'steel': 0.01, 'water': 0.01 },
+        'Phosphorus-32 (Beta)': { 'lead': 0.1, 'concrete': 0.12, 'steel': 0.1, 'water': 0.15 },
+        'Radium-226 (Multiple)': { 'lead': 1.6, 'concrete': 7.0, 'steel': 2.5, 'water': 16.0 },
+        'Selenium-75 (265 keV)': { 'lead': 0.13, 'concrete': 3.2, 'steel': 0.7, 'water': 7.2 },
+        'Sodium-22 (1.27 MeV)': { 'lead': 1.2, 'concrete': 6.3, 'steel': 2.1, 'water': 14.8 },
+        'Strontium-85 (514 keV)': { 'lead': 0.45, 'concrete': 4.2, 'steel': 1.2, 'water': 9.0 },
+        'Technetium-99m (140 keV)': { 'lead': 0.03, 'concrete': 2.8, 'steel': 0.6, 'water': 6.5 },
+        'Thallium-201 (167 keV)': { 'lead': 0.05, 'concrete': 2.9, 'steel': 0.6, 'water': 6.8 },
+        'Tin-113 (392 keV)': { 'lead': 0.25, 'concrete': 3.8, 'steel': 1.0, 'water': 8.2 },
+        'Yttrium-88 (1.84 MeV)': { 'lead': 1.5, 'concrete': 7.2, 'steel': 2.4, 'water': 17.0 },
+        'Zinc-65 (1.12 MeV)': { 'lead': 1.1, 'concrete': 5.9, 'steel': 2.0, 'water': 13.8 }
+    };
+    
+    const DECAY_DATA = { // half-life in years
+        'Fluorine-18': { halfLife: 0.000208, unit: 'days', maxTime: 1 },
+        'Technetium-99m': { halfLife: 0.000685, unit: 'days', maxTime: 2 },
+        'Iodine-131':  { halfLife: 0.022, unit: 'days', maxTime: 80 },
+        'Phosphorus-32': { halfLife: 0.039, unit: 'days', maxTime: 140 },
+        'Chromium-51': { halfLife: 0.076, unit: 'days', maxTime: 280 },
+        'Iron-59': { halfLife: 0.122, unit: 'days', maxTime: 450 },
+        'Iridium-192': { halfLife: 0.202, unit: 'days', maxTime: 740 },
+        'Polonium-210': { halfLife: 0.378, unit: 'days', maxTime: 400 },
+        'Sodium-24': { halfLife: 0.00042, unit: 'days', maxTime: 1 },
+        'Gold-198': { halfLife: 0.0073, unit: 'days', maxTime: 30 },
+        'Krypton-85': { halfLife: 10.76, unit: 'years', maxTime: 100 },
+        'Tritium (H-3)': { halfLife: 12.3, unit: 'years', maxTime: 120 },
+        'Strontium-90': { halfLife: 28.8, unit: 'years', maxTime: 300 },
+        'Cesium-137': { halfLife: 30.17, unit: 'years', maxTime: 300 },
+        'Cobalt-60':  { halfLife: 5.27, unit: 'years', maxTime: 50 },
+        'Nickel-63': { halfLife: 100.1, unit: 'years', maxTime: 1000 },
+        'Radium-226': { halfLife: 1600, unit: 'years', maxTime: 16000 },
+        'Carbon-14':   { halfLife: 5730, unit: 'years', maxTime: 50000 },
+        'Americium-241': { halfLife: 432.2, unit: 'years', maxTime: 4000 },
+        'Plutonium-238': { halfLife: 87.7, unit: 'years', maxTime: 800 },
+        'Plutonium-239': { halfLife: 24100, unit: 'years', maxTime: 240000 },
+        'Plutonium-241': { halfLife: 14.3, unit: 'years', maxTime: 140 },
+        'Uranium-233': { halfLife: 159200, unit: 'years', maxTime: 1.6e6 },
+        'Uranium-235': { halfLife: 7.038e8, unit: 'years', maxTime: 7e9 },
+        'Uranium-238': { halfLife: 4.468e9, unit: 'years', maxTime: 4.5e10 },
+        'Potassium-40': { halfLife: 1.251e9, unit: 'years', maxTime: 1.3e10 },
+    };
+
+    // --- Tab Switching Logic --- //
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.getAttribute('data-tab');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === target) {
+                    content.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // --- Annual Dose Calculator --- //
+    const locationEl = document.getElementById('location');
+    const flightsEl = document.getElementById('flights');
+    const medicalExamsContainer = document.getElementById('medical-exams-container');
+    const totalDoseEl = document.getElementById('total-dose');
+    const doseComparisonEl = document.getElementById('dose-comparison');
+    const resetButton = document.getElementById('reset-button');
+    const cancerRiskEl = document.getElementById('cancer-risk');
+
+    function populateMedicalExams() {
+        Object.keys(DOSE_DATA.medical).forEach(key => {
+            const exam = DOSE_DATA.medical[key];
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between';
+            div.innerHTML = `
+                <div>
+                    <input type="checkbox" id="${key}" class="h-4 w-4 text-sky-600 bg-slate-100 border-slate-300 rounded medical-check">
+                    <label for="${key}" class="ml-2 text-slate-700">${exam.name}</label>
+                </div>
+                <input type="number" id="${key}-count" value="1" min="0" class="w-20 bg-slate-200 border-slate-300 rounded-md shadow-sm py-1 px-2 text-sm medical-count" disabled>
+            `;
+            medicalExamsContainer.appendChild(div);
+        });
+
+        document.querySelectorAll('.medical-check').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const countInput = document.getElementById(`${e.target.id}-count`);
+                countInput.disabled = !e.target.checked;
+                if (!e.target.checked) {
+                    countInput.value = 1;
+                }
+                calculateAnnualDose();
+            });
+        });
+
+        document.querySelectorAll('.medical-count').forEach(input => {
+            input.addEventListener('input', calculateAnnualDose);
+        });
+    }
+
+
+    function calculateCancerRisk(doseInMsv) {
+        const riskPerMsv = 0.000055;
+        const additionalRisk = doseInMsv * riskPerMsv;
+        const additionalRiskPercent = additionalRisk * 100;
+        cancerRiskEl.textContent = `~${additionalRiskPercent.toPrecision(2)}%`;
+    }
+
+    function calculateAnnualDose() {
+        let total = DOSE_DATA.location[locationEl.value] + (parseInt(flightsEl.value) || 0) * DOSE_DATA.flight;
+        document.querySelectorAll('.medical-check').forEach(box => {
+            if (box.checked) {
+                const countInput = document.getElementById(`${box.id}-count`);
+                const count = parseInt(countInput.value) || 0;
+                total += DOSE_DATA.medical[box.id].dose * count;
+            }
+        });
+        totalDoseEl.textContent = `${total.toFixed(2)} mSv`;
+        doseComparisonEl.textContent = total > 10 ? 'Significantly higher than average, mainly due to medical scans.' : total > 0.5 ? 'Higher than the average PH background dose.' : 'Around the average natural background dose in the Philippines.';
+        calculateCancerRisk(total);
+    }
+
+    function resetCalculator() {
+        locationEl.value = 'avg';
+        flightsEl.value = '0';
+        document.querySelectorAll('.medical-check').forEach(box => {
+            box.checked = false;
+            const countInput = document.getElementById(`${box.id}-count`);
+            countInput.disabled = true;
+            countInput.value = 1;
+        });
+        calculateAnnualDose();
+    }
+
+    if (medicalExamsContainer) {
+        populateMedicalExams();
+        resetButton.addEventListener('click', resetCalculator);
+        [locationEl, flightsEl].forEach(el => { el.addEventListener('input', calculateAnnualDose); el.addEventListener('change', calculateAnnualDose); });
+    }
+    
+    // --- Dose Spectrum --- //
+    const spectrumContainer = document.getElementById('spectrum-container');
+    SPECTRUM_DATA.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-slate-100 rounded-lg cursor-pointer hover:bg-sky-500 hover:text-white transition-colors duration-200 flex flex-col justify-center items-center h-24 border border-slate-200';
+        div.innerHTML = `<span class="font-semibold text-sm">${item.name}</span>`;
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        const tooltipText = document.createElement('span');
+        tooltipText.className = 'tooltiptext';
+        tooltipText.textContent = `${item.dose} mSv: ${item.info}`;
+        tooltip.appendChild(div);
+        tooltip.appendChild(tooltipText);
+        spectrumContainer.appendChild(tooltip);
+    });
+    
+    // --- Acute Exposure Simulator --- //
+    const arsDoseSlider = document.getElementById('ars-dose-slider');
+    const arsDoseValue = document.getElementById('ars-dose-value');
+    const arsResultsCard = document.getElementById('ars-results-card');
+    const arsSyndromeName = document.getElementById('ars-syndrome-name');
+    const arsSymptoms = document.getElementById('ars-symptoms');
+    const arsPrognosis = document.getElementById('ars-prognosis');
+    const arsOnset = document.getElementById('ars-onset');
+    const arsTimeframe = document.getElementById('ars-timeframe');
+    
+    function updateArsSimulator(dose) {
+        arsDoseValue.textContent = `${parseFloat(dose).toFixed(1)} Sv`;
+        let syndrome;
+        if (dose < 0.7) {
+            syndrome = ARS_DATA.find(s => s.level === 0);
+        } else if (dose >= 0.7 && dose < 6) {
+             syndrome = ARS_DATA.find(s => s.level === 1);
+        } else if (dose >= 6 && dose < 20) {
+            syndrome = ARS_DATA.find(s => s.level === 2);
+        } else {
+             syndrome = ARS_DATA.find(s => s.level === 3);
+        }
+
+        if (syndrome) {
+            arsSyndromeName.textContent = syndrome.name;
+            arsSymptoms.textContent = syndrome.symptoms;
+            arsPrognosis.textContent = syndrome.prognosis;
+            arsOnset.textContent = syndrome.onset;
+            arsTimeframe.textContent = syndrome.timeframe;
+
+            arsSyndromeName.className = `text-xl font-bold mb-2 ${syndrome.style.text}`;
+            arsResultsCard.className = `mt-6 info-card ${syndrome.style.bg} ${syndrome.style.border}`;
+        }
+    }
+    arsDoseSlider.addEventListener('input', (e) => updateArsSimulator(e.target.value));
+
+    // --- Shielding Calculator --- //
+    const shieldingSourceEl = document.getElementById('shielding-source');
+    const shieldingMaterialEl = document.getElementById('shielding-material');
+    const shieldingThicknessEl = document.getElementById('shielding-thickness');
+    const shieldingThicknessValueEl = document.getElementById('shielding-thickness-value');
+    const shieldedDoseEl = document.getElementById('shielded-dose');
+    const hvlInfoEl = document.getElementById('hvl-info');
+
+    function populateShieldingSources() {
+        const sortedSources = Object.keys(HVL_DATA).sort();
+        sortedSources.forEach(source => {
+            const option = document.createElement('option');
+            option.value = source;
+            option.textContent = source;
+            shieldingSourceEl.appendChild(option);
+        });
+        shieldingSourceEl.value = 'Cobalt-60 (1.25 MeV)';
+    }
+
+    function calculateShielding() {
+        const source = shieldingSourceEl.value;
+        const material = shieldingMaterialEl.value;
+        const thickness = parseFloat(shieldingThicknessEl.value);
+        const hvl = HVL_DATA[source][material];
+        const initialDose = 100;
+        const newDose = initialDose * Math.pow(0.5, thickness / hvl);
+        shieldingThicknessValueEl.textContent = `${thickness.toFixed(1)} cm`;
+        shieldedDoseEl.textContent = `${newDose.toPrecision(3)} mSv/hr`;
+        hvlInfoEl.textContent = `HVL for this combo: ${hvl} cm`;
+    }
+    
+    if(shieldingSourceEl) {
+        populateShieldingSources();
+        [shieldingSourceEl, shieldingMaterialEl, shieldingThicknessEl].forEach(el => el.addEventListener('input', calculateShielding));
+        calculateShielding();
+    }
+
+
+    // --- Decay Calculator --- //
+    const decayIsotopeEl = document.getElementById('decay-isotope');
+    const decayTimeEl = document.getElementById('decay-time');
+    const decayTimeValueEl = document.getElementById('decay-time-value');
+    const decayActivityEl = document.getElementById('decay-activity');
+    const decayInfoEl = document.getElementById('decay-info');
+    let decayChart;
+
+    function populateIsotopes() {
+        const sortedIsotopes = Object.keys(DECAY_DATA).sort((a, b) => DECAY_DATA[a].halfLife - DECAY_DATA[b].halfLife);
+        sortedIsotopes.forEach(iso => {
+            const option = document.createElement('option');
+            option.value = iso;
+            option.textContent = iso;
+            decayIsotopeEl.appendChild(option);
+        });
+        decayIsotopeEl.value = 'Cobalt-60';
+    }
+
+    function formatTime(value, unit) {
+        if (value >= 1e9) return `${(value / 1e9).toPrecision(4)} billion ${unit}`;
+        if (value >= 1e6) return `${(value / 1e6).toPrecision(4)} million ${unit}`;
+        if (value >= 1e3) return `${(value / 1e3).toPrecision(4)} thousand ${unit}`;
+        return `${value.toPrecision(3)} ${unit}`;
+    }
+
+    function updateDecaySlider() {
+        const isotope = decayIsotopeEl.value;
+        const data = DECAY_DATA[isotope];
+        decayTimeEl.max = data.maxTime;
+        decayTimeEl.step = data.maxTime / 200;
+        decayTimeEl.value = 0; // Reset slider on change
+        calculateDecay();
+    }
+    function calculateDecay() {
+        const isotope = decayIsotopeEl.value;
+        const data = DECAY_DATA[isotope];
+        const time = parseFloat(decayTimeEl.value);
+        
+        let timeInYears = time;
+        if (data.unit === 'days') { timeInYears = time / 365.25; }
+        
+        const halfLife = data.halfLife;
+        const remaining = 100 * Math.pow(0.5, timeInYears / halfLife);
+        
+        decayTimeValueEl.textContent = `${time.toPrecision(3)} ${data.unit}`;
+        decayActivityEl.textContent = `${remaining.toFixed(1)}%`;
+        decayInfoEl.textContent = `Half-life: ${formatTime(data.halfLife, 'years')}`;
+        
+        if(decayChart) {
+            updateDecayChart(isotope, time);
+        }
+    }
+    function updateDecayChart(isotope, currentTime) {
+        const data = DECAY_DATA[isotope];
+        const halfLife = data.halfLife;
+        const labels = [];
+        const chartData = [];
+        const maxTime = data.maxTime;
+
+        for (let t = 0; t <= maxTime; t += maxTime / 10) {
+            labels.push(t.toPrecision(2));
+            let tInYears = t;
+            if (data.unit === 'days') { tInYears = t / 365.25; }
+            chartData.push(100 * Math.pow(0.5, tInYears / halfLife));
+        }
+
+        decayChart.data.labels = labels;
+        decayChart.data.datasets[0].data = chartData;
+        decayChart.data.datasets[0].label = `${isotope} Activity (%)`;
+        decayChart.data.datasets[0].borderColor = '#0ea5e9';
+        decayChart.options.scales.x.title.text = `Time (${data.unit})`;
+
+        // Update annotation for current time
+        decayChart.options.plugins.annotation.annotations.line1.xMin = currentTime;
+        decayChart.options.plugins.annotation.annotations.line1.xMax = currentTime;
+        decayChart.options.plugins.annotation.annotations.line1.label.content = `Current: ${currentTime.toPrecision(3)} ${data.unit}`;
+
+        decayChart.update();
+    }
+    
+    function initializeDecayChart() {
+        const ctx = document.getElementById('decayChart').getContext('2d');
+        if (!window['chartjs-plugin-annotation']) {
+            console.error('Chart.js Annotation plugin not found!');
+            return;
+        }
+        const ChartAnnotation = window['chartjs-plugin-annotation'];
+        Chart.register(ChartAnnotation);
+        decayChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: [], datasets: [{ data: [], tension: 0.1, pointRadius: 0 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100, title: { display: true, text: 'Remaining Activity (%)' } },
+                    x: { title: { display: true, text: 'Time' } }
+                },
+                plugins: {
+                    legend: { display: true },
+                    annotation: {
+                        annotations: {
+                            line1: { type: 'line', scaleID: 'x', borderWidth: 2, borderColor: 'red', value: 0,
+                                label: { enabled: true, content: 'Current Time', position: 'start' }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (document.getElementById('decayChart')) {
+        populateIsotopes();
+        initializeDecayChart();
+        decayIsotopeEl.addEventListener('change', updateDecaySlider);
+        decayTimeEl.addEventListener('input', calculateDecay);
+        updateDecaySlider();
+    }
+
+    // Initial calls for all calculators
+    calculateAnnualDose();
+    updateArsSimulator(arsDoseSlider.value);
+});
+</script>
+</body>
+</html>
+
