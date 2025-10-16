@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest/dist/chartjs-plugin-annotation.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -124,6 +124,56 @@
             padding: 1rem;
             border-radius: 0.5rem;
         }
+
+        /* INES Pyramid Styles */
+        .ines-pyramid {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 2rem auto;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+        }
+        .ines-level {
+            height: 30px;
+            position: relative;
+            text-align: center;
+            color: black;
+            font-weight: bold;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease-out;
+            cursor: pointer;
+        }
+        .ines-level:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .ines-level span {
+            position: absolute;
+            white-space: nowrap;
+            left: 105%;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .ines-level::before { /* Left side label */
+            content: attr(data-level);
+            position: absolute;
+            right: 105%;
+            font-weight: bold;
+        }
+        #ines-7 { width: 15%; background-color: #db2777; }
+        #ines-6 { width: 30%; background-color: #dc2626; }
+        #ines-5 { width: 45%; background-color: #f97316; }
+        #ines-4 { width: 60%; background-color: #f59e0b; }
+        #ines-3 { width: 75%; background-color: #16a34a; }
+        #ines-2 { width: 90%; background-color: #16a34a; }
+        #ines-1 { width: 100%; background-color: #16a34a; }
+        #ines-0 { width: 100%; background-color: #d1d5db; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
+        #ines-7 { border-top-left-radius: 4px; border-top-right-radius: 4px; }
     </style>
 </head>
 <body class="antialiased">
@@ -314,6 +364,27 @@
             <!-- Facts & Safety Tab -->
             <div id="facts" class="tab-content">
                 <div class="space-y-8">
+                     <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">International Nuclear & Radiological Event Scale (INES)</h2>
+                        <p class="text-slate-600 mb-4">The IAEA's logarithmic scale for communicating the safety significance of nuclear events.</p>
+                        <div class="ines-pyramid">
+                            <div id="ines-7" class="ines-level" data-level="7"><span>Major Accident</span></div>
+                            <div id="ines-6" class="ines-level" data-level="6"><span>Serious Accident</span></div>
+                            <div id="ines-5" class="ines-level" data-level="5"><span>Accident with Wider Consequences</span></div>
+                            <div id="ines-4" class="ines-level" data-level="4"><span>Accident with Local Consequences</span></div>
+                            <div id="ines-3" class="ines-level" data-level="3"><span>Serious Incident</span></div>
+                            <div id="ines-2" class="ines-level" data-level="2"><span>Incident</span></div>
+                            <div id="ines-1" class="ines-level" data-level="1"><span>Anomaly</span></div>
+                            <div id="ines-0" class="ines-level" data-level="0"><span>Deviation</span></div>
+                        </div>
+                        <div class="mt-8 space-y-4">
+                             <div class="info-card bg-pink-50 border-pink-500"><p><strong class="text-pink-800">Level 7 (Major Accident):</strong> Major release of radioactive material with widespread health and environmental effects. <em class="text-pink-700">Examples: Chernobyl (1986), Fukushima (2011).</em></p></div>
+                             <div class="info-card bg-red-50 border-red-500"><p><strong class="text-red-800">Level 6 (Serious Accident):</strong> Significant release of radioactive material likely to require implementation of planned countermeasures. <em class="text-red-700">Example: Kyshtym Disaster (1957).</em></p></div>
+                             <div class="info-card bg-orange-50 border-orange-500"><p><strong class="text-orange-800">Level 5 (Accident with Wider Consequences):</strong> Limited release of radioactive material; several deaths from radiation. <em class="text-orange-700">Examples: Windscale Fire (1957), Three Mile Island (1979), Goiânia Accident (1987).</em></p></div>
+                             <div class="info-card bg-amber-50 border-amber-500"><p><strong class="text-amber-800">Level 4 (Accident with Local Consequences):</strong> Minor release of radioactive material; at least one death from radiation. <em class="text-amber-700">Examples: SL-1 Experimental Power Station (1961), Saint-Laurent (1969).</em></p></div>
+                             <div class="info-card bg-lime-50 border-lime-500"><p><strong class="text-lime-800">Levels 1-3 (Incidents):</strong> Events with lower levels of impact, ranging from anomalies (Level 1) to serious incidents with significant failures in safety provisions (Level 3).</p></div>
+                        </div>
+                    </div>
                     <div class="card">
                         <h2 class="text-2xl font-bold text-slate-900 mb-4">Types of Ionizing Radiation & Their Dangers</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
