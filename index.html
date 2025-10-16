@@ -253,7 +253,7 @@
                              <h2 class="text-2xl font-bold text-sky-900 mb-4">Calculation Results</h2>
                              <div class="text-center">
                                 <p class="text-sky-800">Your Estimated Annual Dose:</p>
-                                <p id="total-dose" class="text-4xl font-bold text-sky-600">0.40 mSv</p>
+                                <p id="total-dose" class="text-4xl font-bold text-sky-600">40 mrem</p>
                                 <p id="dose-comparison" class="text-sm text-sky-700 mt-1">Equivalent to the average natural background dose in the Philippines.</p>
                             </div>
                         </div>
@@ -278,11 +278,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                         <div class="info-card bg-cyan-50 border-cyan-500 text-cyan-800">
                             <p class="font-bold"><i class="fa-solid fa-user-doctor mr-2"></i>Occupational Dose Limit</p>
-                            <p><strong>50 mSv per year.</strong> This is the maximum dose allowed for a person who works with radiation (e.g., nuclear plant worker, radiographer).</p>
+                            <p><strong>5,000 mrem per year.</strong> This is the maximum dose allowed for a person who works with radiation (e.g., nuclear plant worker, radiographer).</p>
                         </div>
                         <div class="info-card bg-teal-50 border-teal-500 text-teal-800">
                             <p class="font-bold"><i class="fa-solid fa-users mr-2"></i>General Public Dose Limit</p>
-                            <p><strong>1 mSv per year.</strong> This is the maximum allowed dose to a member of the public from licensed nuclear activities (in addition to background and medical).</p>
+                            <p><strong>100 mrem per year.</strong> This is the maximum allowed dose to a member of the public from licensed nuclear activities (in addition to background and medical).</p>
                         </div>
                     </div>
                     <div id="spectrum-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center">
@@ -297,8 +297,8 @@
                     <h2 class="text-2xl font-bold text-slate-900 mb-2">Acute Exposure Simulator (Deterministic Effects)</h2>
                     <p class="text-slate-600 mb-6">See the effects of a single, large, whole-body dose. <span class="font-bold text-red-600">This applies to catastrophic events only.</span></p>
                     <div>
-                        <label for="ars-dose-slider" class="block font-medium text-slate-700">Dose in Sieverts (Sv): <span id="ars-dose-value" class="font-bold text-sky-600">1 Sv</span></label>
-                        <input id="ars-dose-slider" type="range" min="0" max="25" step="0.1" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
+                        <label for="ars-dose-slider" class="block font-medium text-slate-700">Dose in rem: <span id="ars-dose-value" class="font-bold text-sky-600">100 rem</span></label>
+                        <input id="ars-dose-slider" type="range" min="0" max="2500" step="10" value="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
                     </div>
                     <div id="ars-results-card" class="mt-6 info-card bg-slate-50 border-slate-500">
                         <h3 id="ars-syndrome-name" class="text-xl font-bold mb-2"></h3>
@@ -342,8 +342,8 @@
                             </div>
                         </div>
                         <div class="info-card bg-sky-50 border-sky-500 flex flex-col justify-center text-center">
-                             <p class="text-sky-800">Dose Rate (100 mSv/hr initial):</p>
-                             <p id="shielded-dose" class="text-4xl font-bold text-sky-600">50.0 mSv/hr</p>
+                             <p class="text-sky-800">Dose Rate (10,000 mrem/hr initial):</p>
+                             <p id="shielded-dose" class="text-4xl font-bold text-sky-600">5000 mrem/hr</p>
                              <p id="hvl-info" class="text-sm text-sky-700 mt-2">HVL for this combo: X cm</p>
                         </div>
                     </div>
@@ -385,6 +385,28 @@
             <!-- Facts & Safety Tab -->
             <div id="facts" class="tab-content">
                 <div class="space-y-8">
+                     <div class="card">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Understanding Radiation Units</h2>
+                        <p class="text-slate-600 mb-4">This simulator uses traditional units (rem, rad) for its calculations. Here's how they relate to modern SI units.</p>
+                        <div class="space-y-4 text-sm">
+                            <div class="info-card bg-blue-50 border-blue-500">
+                                <h3 class="font-bold text-blue-800">Activity: Becquerel (Bq) & Curie (Ci)</h3>
+                                <p class="text-blue-700 mt-1">Measures the strength of a radioactive source (how many atoms decay per second). It's like measuring the brightness of a light bulb at the bulb itself. <br><em>1 Ci = 37 billion Bq.</em></p>
+                            </div>
+                            <div class="info-card bg-cyan-50 border-cyan-500">
+                                <h3 class="font-bold text-cyan-800">Exposure: Roentgen (R)</h3>
+                                <p class="text-cyan-700 mt-1">Measures the ability of X-rays or gamma rays to ionize the air. It's like measuring how bright a light bulb makes a spot on the wall.</p>
+                            </div>
+                            <div class="info-card bg-teal-50 border-teal-500">
+                                <h3 class="font-bold text-teal-800">Absorbed Dose: Gray (Gy) & Rad</h3>
+                                <p class="text-teal-700 mt-1">Measures the amount of energy deposited in any material (including body tissue). This is the fundamental quantity for physical dose. <br><em>1 Gy = 100 rad.</em></p>
+                            </div>
+                            <div class="info-card bg-indigo-50 border-indigo-500">
+                                <h3 class="font-bold text-indigo-800">Equivalent & Effective Dose: Sievert (Sv) & Rem</h3>
+                                <p class="text-indigo-700 mt-1">The most important unit for radiation protection, as it measures biological risk. It adjusts the absorbed dose (Gray/rad) for the type of radiation and the sensitivity of the tissue being exposed. This is the unit used for dose limits. <br><em>1 Sv = 100 rem.</em></p>
+                            </div>
+                        </div>
+                    </div>
                      <div class="card">
                         <h2 class="text-2xl font-bold text-slate-900 mb-2">International Nuclear & Radiological Event Scale (INES)</h2>
                         <p class="text-slate-600 mb-4">The IAEA's logarithmic scale for communicating the safety significance of nuclear events.</p>
@@ -492,7 +514,7 @@
                     <div class="card">
                         <h2 class="text-2xl font-bold text-slate-900 mb-4">Fun Facts About Radiation</h2>
                         <div class="space-y-4">
-                            <div class="fact-item"><i class="fa-solid fa-banana"></i><div><span class="font-bold">The Banana Dose:</span> Eating one banana exposes you to ~0.0001 mSv from naturally occurring Potassium-40. It's a common unit for trivial radiation doses.</div></div>
+                            <div class="fact-item"><i class="fa-solid fa-banana"></i><div><span class="font-bold">The Banana Dose:</span> Eating one banana exposes you to ~0.01 mrem from naturally occurring Potassium-40. It's a common unit for trivial radiation doses.</div></div>
                             <div class="fact-item"><i class="fa-solid fa-house-chimney-crack"></i><div><span class="font-bold">Radioactive Homes:</span> The single largest source of natural radiation for most people is radon gas seeping into their homes from the ground.</div></div>
                             <div class="fact-item"><i class="fa-solid fa-earth-americas"></i><div><span class="font-bold">Natural Reactors:</span> About 2 billion years ago, a natural nuclear fission reactor existed in what is now Oklo, Gabon, Africa, running for hundreds of thousands of years.</div></div>
                             <div class="fact-item"><i class="fa-solid fa-smog"></i><div><span class="font-bold">Smoky Radiation:</span> The annual dose to the lungs of a pack-a-day smoker can be equivalent to getting hundreds of chest x-rays due to Polonium-210 in tobacco.</div></div>
@@ -526,57 +548,56 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DATA from PDF and other sources --- //
     const DOSE_DATA = {
-        location: { low: 0.35, avg: 0.40, high: 0.55 },
-        flight: 0.015,
+        location: { low: 35, avg: 40, high: 55 }, // mrem
+        flight: 1.5, // mrem
         medical: { 
-            'dental-xray': { dose: 0.005, name: 'Dental X-ray' },
-            'chest-xray': { dose: 0.1, name: 'Chest X-ray' },
-            'mammogram': { dose: 0.4, name: 'Mammogram' },
-            'head-ct': { dose: 2, name: 'Head CT Scan' },
-            'abdomen-ct': { dose: 10, name: 'Abdomen CT Scan' },
-            'pet-ct': { dose: 25, name: 'PET/CT Scan' }
+            'dental-xray': { dose: 0.5, name: 'Dental X-ray' },
+            'chest-xray': { dose: 10, name: 'Chest X-ray' },
+            'mammogram': { dose: 40, name: 'Mammogram' },
+            'head-ct': { dose: 200, name: 'Head CT Scan' },
+            'abdomen-ct': { dose: 1000, name: 'Abdomen CT Scan' },
+            'pet-ct': { dose: 2500, name: 'PET/CT Scan' }
         }
     };
 
     const SPECTRUM_DATA = [
-        { name: "Sleeping Next to Someone", dose: 0.00005, info: "Dose from the other person's natural Potassium-40 (annual)." },
-        { name: "Eating a Banana", dose: 0.0001, info: "Contains naturally radioactive Potassium-40." },
-        { name: "Dental X-ray", dose: 0.005, info: "A very low dose medical imaging procedure." },
-        { name: "Living near Nuclear Plant", dose: 0.01, info: "Typical additional dose per year." },
-        { name: "Three Mile Island", dose: 0.01, info: "Max dose to a person at site boundary. General public dose was much lower." },
-        { name: "PH Domestic Flight", dose: 0.015, info: "Increased cosmic radiation at high altitude." },
-        { name: "Chest X-ray", dose: 0.1, info: "Equivalent to about 3 months of PH background radiation." },
-        { name: "Mammogram", dose: 0.4, info: "A screening procedure; equivalent to about one year of PH background radiation." },
-        { name: "Grand Central Station", dose: 1.2, info: "Annual dose from standing in the station due to granite's natural radioactivity." },
-        { name: "Lumbar Spine X-ray", dose: 1.5, info: "Higher dose than a chest x-ray due to thicker anatomy." },
-        { name: "Smoking 1 Pack/Day", dose: 1.5, info: "Effective annual dose to lungs from Polonium-210 in tobacco." },
-        { name: "Head CT Scan", dose: 2, info: "A common high-detail scan." },
-        { name: "US Average Radon Dose", dose: 2.28, info: "Average annual dose from radon gas inhalation in the US." },
-        { name: "Airline Pilot", dose: 3, info: "Typical annual occupational dose from cosmic radiation." },
-        { name: "Barium Enema", dose: 6, info: "A fluoroscopic procedure with a significant dose." },
-        { name: "Bone Scan", dose: 6.3, info: "A nuclear medicine procedure using Tc-99m." },
-        { name: "Abdomen CT Scan", dose: 10, info: "Equivalent to over 20 years of PH background radiation." },
-        { name: "Fukushima Public", dose: 10, info: "Estimated avg. lifetime dose for adults in the most affected areas." },
-        { name: "Coronary CT Angiography", dose: 12, info: "A high-dose cardiac scan." },
-        { name: "ISS Astronaut", dose: 80, info: "Average dose for a 6-month mission on the International Space Station." },
-        { name: "Lowest Cancer Link", dose: 100, info: "Lowest dose clearly linked to increased cancer risk in population studies." },
-        { name: "Chernobyl Worker", dose: 120, info: "Avg. dose for registered cleanup workers ('liquidators')." },
-        { name: "Kyshtym Evacuee", dose: 520, info: "Max estimated dose to evacuated population from 1957 waste explosion." },
-        { name: "ARS Threshold", dose: 700, info: "Dose to cause initial symptoms of Acute Radiation Syndrome." },
-        { name: "Daigo Fukuryū Maru", dose: 2900, info: "Estimated dose to fisherman caught in Bikini Atoll (Castle Bravo) fallout." },
-        { name: "LD 50/60 Dose", dose: 4000, info: "Lethal dose for 50% of people within 60 days without medical care." },
-        { name: "Goiânia Victim", dose: 7000, info: "Dose received by one of the fatal victims of the 1987 Cs-137 source accident." },
-        { name: "Hiroshima Survivor (1km)", dose: 9000, info: "Estimated dose for a survivor 1km from the hypocenter." },
-        { name: "Chernobyl Firefighter", dose: 10000, info: "Many first responders received doses in this range, which were fatal." },
-        { name: "Hisashi Ouchi", dose: 17000, info: "One of the highest recorded doses to a human. The dose was fatal." }
+        { name: "Sleeping Next to Someone", dose: 0.005, info: "Dose from the other person's natural Potassium-40 (annual)." },
+        { name: "Eating a Banana", dose: 0.01, info: "Contains naturally radioactive Potassium-40." },
+        { name: "Dental X-ray", dose: 0.5, info: "A very low dose medical imaging procedure." },
+        { name: "Living near Nuclear Plant", dose: 1, info: "Typical additional dose per year." },
+        { name: "Three Mile Island", dose: 1, info: "Max dose to a person at site boundary. General public dose was much lower." },
+        { name: "PH Domestic Flight", dose: 1.5, info: "Increased cosmic radiation at high altitude." },
+        { name: "Chest X-ray", dose: 10, info: "Equivalent to about 3 months of PH background radiation." },
+        { name: "Mammogram", dose: 40, info: "A screening procedure; equivalent to about one year of PH background radiation." },
+        { name: "Grand Central Station", dose: 120, info: "Annual dose from standing in the station due to granite's natural radioactivity." },
+        { name: "Lumbar Spine X-ray", dose: 150, info: "Higher dose than a chest x-ray due to thicker anatomy." },
+        { name: "Smoking 1 Pack/Day", dose: 150, info: "Effective annual dose to lungs from Polonium-210 in tobacco." },
+        { name: "Head CT Scan", dose: 200, info: "A common high-detail scan." },
+        { name: "US Average Radon Dose", dose: 228, info: "Average annual dose from radon gas inhalation in the US." },
+        { name: "Airline Pilot", dose: 300, info: "Typical annual occupational dose from cosmic radiation." },
+        { name: "Barium Enema", dose: 600, info: "A fluoroscopic procedure with a significant dose." },
+        { name: "Bone Scan", dose: 630, info: "A nuclear medicine procedure using Tc-99m." },
+        { name: "Abdomen CT Scan", dose: 1000, info: "Equivalent to over 20 years of PH background radiation." },
+        { name: "Fukushima Public", dose: 1000, info: "Estimated avg. lifetime dose for adults in the most affected areas." },
+        { name: "Coronary CT Angiography", dose: 1200, info: "A high-dose cardiac scan." },
+        { name: "ISS Astronaut", dose: 8000, info: "Average dose for a 6-month mission on the International Space Station." },
+        { name: "Lowest Cancer Link", dose: 10000, info: "Lowest dose clearly linked to increased cancer risk in population studies." },
+        { name: "Chernobyl Worker", dose: 12000, info: "Avg. dose for registered cleanup workers ('liquidators')." },
+        { name: "Kyshtym Evacuee", dose: 52000, info: "Max estimated dose to evacuated population from 1957 waste explosion." },
+        { name: "ARS Threshold", dose: 70000, info: "Dose to cause initial symptoms of Acute Radiation Syndrome." },
+        { name: "Daigo Fukuryū Maru", dose: 290000, info: "Estimated dose to fisherman caught in Bikini Atoll (Castle Bravo) fallout." },
+        { name: "LD 50/60 Dose", dose: 400000, info: "Lethal dose for 50% of people within 60 days without medical care." },
+        { name: "Goiânia Victim", dose: 700000, info: "Dose received by one of the fatal victims of the 1987 Cs-137 source accident." },
+        { name: "Hiroshima Survivor (1km)", dose: 900000, info: "Estimated dose for a survivor 1km from the hypocenter." },
+        { name: "Chernobyl Firefighter", dose: 1000000, info: "Many first responders received doses in this range, which were fatal." },
+        { name: "Hisashi Ouchi", dose: 1700000, info: "One of the highest recorded doses to a human. The dose was fatal." }
     ].sort((a, b) => a.dose - b.dose);
     
     const ARS_DATA = [
         { level: 0, name: "No Acute Radiation Syndrome", symptoms: "No immediate life-threatening symptoms. Increased long-term cancer risk is the primary concern.", onset: "N/A", timeframe: "N/A", prognosis: "Survival is certain from acute effects.", style: { bg: 'bg-slate-50', border: 'border-slate-500', text: 'text-slate-800' } },
-        { level: 1, minDose: 0.7, maxDose: 10, name: "Bone Marrow Syndrome (Hematopoietic)", symptoms: "Destruction of bone marrow, leading to infection and hemorrhage.", onset: "1-6 hours", timeframe: "Death within several months if it occurs.", prognosis: "Survival is possible, especially at lower end of dose range with medical care.", style: { bg: 'bg-amber-50', border: 'border-amber-500', text: 'text-amber-800' } },
-        { level: 2, minDose: 6, maxDose: 30, name: "Gastrointestinal (GI) Syndrome", symptoms: "Destruction of intestinal lining, leading to dehydration, electrolyte imbalance, and sepsis.", onset: "< 1 hour", timeframe: "Death within 2 weeks.", prognosis: "Survival is extremely unlikely.", style: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-800' } },
-        { level: 3, minDose: 20, maxDose: Infinity, name: "Cardiovascular (CV) / CNS Syndrome", symptoms: "Circulatory system collapse and brain swelling, leading to convulsions, coma.", onset: "Minutes", timeframe: "Death within 3 days.", prognosis: "Survival is impossible.", style: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' } },
-        { level: 4, name: "Beyond Catastrophic", symptoms: "Circulatory system collapse and brain swelling, leading to convulsions, coma.", onset: "Minutes", timeframe: "Death within 3 days.", prognosis: "Survival is impossible.", style: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' } }
+        { level: 1, minDose: 70, maxDose: 1000, name: "Bone Marrow Syndrome (Hematopoietic)", symptoms: "Destruction of bone marrow, leading to infection and hemorrhage.", onset: "1-6 hours", timeframe: "Death within several months if it occurs.", prognosis: "Survival is possible, especially at lower end of dose range with medical care.", style: { bg: 'bg-amber-50', border: 'border-amber-500', text: 'text-amber-800' } },
+        { level: 2, minDose: 600, maxDose: 3000, name: "Gastrointestinal (GI) Syndrome", symptoms: "Destruction of intestinal lining, leading to dehydration, electrolyte imbalance, and sepsis.", onset: "< 1 hour", timeframe: "Death within 2 weeks.", prognosis: "Survival is extremely unlikely.", style: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-800' } },
+        { level: 3, minDose: 2000, maxDose: Infinity, name: "Cardiovascular (CV) / CNS Syndrome", symptoms: "Circulatory system collapse and brain swelling, leading to convulsions, coma.", onset: "Minutes", timeframe: "Death within 3 days.", prognosis: "Survival is impossible.", style: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' } },
     ];
 
     const HVL_DATA = { // in cm
@@ -725,9 +746,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function calculateCancerRisk(doseInMsv) {
-        const riskPerMsv = 0.000055;
-        const additionalRisk = doseInMsv * riskPerMsv;
+    function calculateCancerRisk(doseInMrem) {
+        const riskPerMrem = 0.00000055; // 5.5% per 100,000 mrem
+        const additionalRisk = doseInMrem * riskPerMrem;
         const additionalRiskPercent = additionalRisk * 100;
         cancerRiskEl.textContent = `~${additionalRiskPercent.toPrecision(2)}%`;
     }
@@ -741,8 +762,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 total += DOSE_DATA.medical[box.id].dose * count;
             }
         });
-        totalDoseEl.textContent = `${total.toFixed(2)} mSv`;
-        doseComparisonEl.textContent = total > 10 ? 'Significantly higher than average, mainly due to medical scans.' : total > 0.5 ? 'Higher than the average PH background dose.' : 'Around the average natural background dose in the Philippines.';
+        totalDoseEl.textContent = `${total.toFixed(0)} mrem`;
+        doseComparisonEl.textContent = total > 1000 ? 'Significantly higher than average, mainly due to medical scans.' : total > 50 ? 'Higher than the average PH background dose.' : 'Around the average natural background dose in the Philippines.';
         calculateCancerRisk(total);
     }
 
@@ -774,7 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tooltip.className = 'tooltip';
         const tooltipText = document.createElement('span');
         tooltipText.className = 'tooltiptext';
-        tooltipText.textContent = `${item.dose} mSv: ${item.info}`;
+        tooltipText.textContent = `${item.dose} mrem: ${item.info}`;
         tooltip.appendChild(div);
         tooltip.appendChild(tooltipText);
         spectrumContainer.appendChild(tooltip);
@@ -790,14 +811,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const arsOnset = document.getElementById('ars-onset');
     const arsTimeframe = document.getElementById('ars-timeframe');
     
-    function updateArsSimulator(dose) {
-        arsDoseValue.textContent = `${parseFloat(dose).toFixed(1)} Sv`;
+    function updateArsSimulator(doseInRem) {
+        arsDoseValue.textContent = `${parseFloat(doseInRem).toFixed(0)} rem`;
         let syndrome;
-        if (dose < 0.7) {
+        if (doseInRem < 70) {
             syndrome = ARS_DATA.find(s => s.level === 0);
-        } else if (dose >= 0.7 && dose < 6) {
+        } else if (doseInRem >= 70 && doseInRem < 600) {
              syndrome = ARS_DATA.find(s => s.level === 1);
-        } else if (dose >= 6 && dose < 20) {
+        } else if (doseInRem >= 600 && doseInRem < 2000) {
             syndrome = ARS_DATA.find(s => s.level === 2);
         } else {
              syndrome = ARS_DATA.find(s => s.level === 3);
@@ -840,10 +861,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const material = shieldingMaterialEl.value;
         const thickness = parseFloat(shieldingThicknessEl.value);
         const hvl = HVL_DATA[source][material];
-        const initialDose = 100;
+        const initialDose = 10000; // 10,000 mrem/hr
         const newDose = initialDose * Math.pow(0.5, thickness / hvl);
         shieldingThicknessValueEl.textContent = `${thickness.toFixed(1)} cm`;
-        shieldedDoseEl.textContent = `${newDose.toPrecision(3)} mSv/hr`;
+        shieldedDoseEl.textContent = `${newDose.toPrecision(3)} mrem/hr`;
         hvlInfoEl.textContent = `HVL for this combo: ${hvl} cm`;
     }
     
