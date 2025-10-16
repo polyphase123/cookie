@@ -121,7 +121,7 @@
         }
         .info-card {
             border-left-width: 4px;
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 0.5rem;
         }
 
@@ -174,6 +174,27 @@
         #ines-1 { width: 100%; background-color: #16a34a; }
         #ines-0 { width: 100%; background-color: #d1d5db; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
         #ines-7 { border-top-left-radius: 4px; border-top-right-radius: 4px; }
+        
+        .ines-event-link {
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .ines-event-link:hover {
+            text-decoration: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            animation: slide-down 0.3s ease-out;
+        }
+        @keyframes slide-down {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -377,12 +398,8 @@
                             <div id="ines-1" class="ines-level" data-level="1"><span>Anomaly</span></div>
                             <div id="ines-0" class="ines-level" data-level="0"><span>Deviation</span></div>
                         </div>
-                        <div class="mt-8 space-y-4">
-                             <div class="info-card bg-pink-50 border-pink-500"><p><strong class="text-pink-800">Level 7 (Major Accident):</strong> Major release of radioactive material with widespread health and environmental effects. <em class="text-pink-700">Examples: Chernobyl (1986), Fukushima (2011).</em></p></div>
-                             <div class="info-card bg-red-50 border-red-500"><p><strong class="text-red-800">Level 6 (Serious Accident):</strong> Significant release of radioactive material likely to require implementation of planned countermeasures. <em class="text-red-700">Example: Kyshtym Disaster (1957).</em></p></div>
-                             <div class="info-card bg-orange-50 border-orange-500"><p><strong class="text-orange-800">Level 5 (Accident with Wider Consequences):</strong> Limited release of radioactive material; several deaths from radiation. <em class="text-orange-700">Examples: Windscale Fire (1957), Three Mile Island (1979), Goiânia Accident (1987).</em></p></div>
-                             <div class="info-card bg-amber-50 border-amber-500"><p><strong class="text-amber-800">Level 4 (Accident with Local Consequences):</strong> Minor release of radioactive material; at least one death from radiation. <em class="text-amber-700">Examples: SL-1 Experimental Power Station (1961), Saint-Laurent (1969).</em></p></div>
-                             <div class="info-card bg-lime-50 border-lime-500"><p><strong class="text-lime-800">Levels 1-3 (Incidents):</strong> Events with lower levels of impact, ranging from anomalies (Level 1) to serious incidents with significant failures in safety provisions (Level 3).</p></div>
+                        <div id="ines-details-container" class="mt-8 space-y-4 text-sm">
+                             <!-- INES Details populated by JS -->
                         </div>
                     </div>
                     <div class="card">
@@ -487,6 +504,19 @@
 
         </div>
         
+        <!-- Modal Structure -->
+        <div id="ines-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden items-center justify-center p-4 modal">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
+                <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                    <h3 id="modal-title" class="text-xl font-bold text-slate-800">Event Background</h3>
+                    <button id="modal-close" class="text-slate-400 hover:text-slate-800 text-3xl font-bold">&times;</button>
+                </div>
+                <div id="modal-body" class="p-6 text-slate-700">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+        </div>
+
         <footer class="text-center mt-12 text-slate-500 text-sm">
              <p>Disclaimer: This is a simplified educational tool. All values are approximate and based on averages from referenced materials. Consult with a qualified professional for medical or safety advice.</p>
         </footer>
@@ -610,6 +640,32 @@ document.addEventListener('DOMContentLoaded', () => {
         'Uranium-238': { halfLife: 4.468e9, unit: 'years', maxTime: 4.5e10 },
         'Potassium-40': { halfLife: 1.251e9, unit: 'years', maxTime: 1.3e10 },
     };
+
+    const INES_EVENTS_DATA = {
+        'Chernobyl': { title: 'Chernobyl Disaster (1986)', text: 'A catastrophic nuclear accident at the Chernobyl Nuclear Power Plant in Ukraine. A flawed reactor design and serious mistakes by operators during a safety test led to a steam explosion and a graphite fire that released vast amounts of radioactive material into the atmosphere.' },
+        'Fukushima': { title: 'Fukushima Daiichi Nuclear Disaster (2011)', text: 'Following a major earthquake, a 15-metre tsunami disabled the power supply and cooling of three Fukushima Daiichi reactors, causing a nuclear accident. All three cores largely melted in the first three days, leading to significant radioactive releases.' },
+        'Kyshtym': { title: 'Kyshtym Disaster (1957)', text: 'A radiological contamination accident that occurred at Mayak, a nuclear fuel reprocessing plant in the Soviet Union. A faulty cooling system in a tank containing high-level radioactive waste led to a chemical (non-nuclear) explosion, contaminating a large area.' },
+        'Chalk River': { title: 'Chalk River Laboratories Accident (1952)', text: 'The world\'s first major nuclear reactor accident. A reactor shutdown system failure and operator errors led to a partial meltdown of the NRX reactor core. There were no fatalities.' },
+        'Windscale': { title: 'Windscale Fire (1957)', text: 'A fire at the British Windscale Piles military reactor facility that burned for three days. The fire released substantial amounts of radioactive contamination into the surrounding area. The event was, at the time, the worst nuclear accident in history.' },
+        'Three Mile Island': { title: 'Three Mile Island Accident (1979)', text: 'A partial meltdown of a reactor at the Three Mile Island Nuclear Generating Station in Pennsylvania, USA. It was the most significant accident in U.S. commercial nuclear power plant history. The accident resulted in the release of small amounts of radioactive gases and iodine into the environment.' },
+        'Goiânia': { title: 'Goiânia Accident (1987)', text: 'A radioactive contamination accident in Brazil where an abandoned radiotherapy source was stolen from a hospital site. It was handled by many people, resulting in four deaths and widespread radioactive contamination.' },
+        'Sellafield': { title: 'Sellafield Events (1955-1979)', text: 'A series of nuclear incidents at the Sellafield nuclear fuel reprocessing and decommissioning site in the UK, including the Windscale Fire (rated INES 5) and other events involving releases of radioactivity or safety breaches.' },
+        'SL-1': { title: 'SL-1 Accident (1961)', text: 'An experimental nuclear power reactor in Idaho, USA, underwent a steam explosion and meltdown, killing its three operators. The cause was the improper manual withdrawal of the central control rod.' },
+        'Saint-Laurent': { title: 'Saint-Laurent Accidents (1969, 1980)', text: 'Two nuclear accidents at the Saint-Laurent Nuclear Power Plant in France. The 1969 event involved a partial core meltdown. The 1980 event involved graphite overheating, which also damaged fuel channels.' },
+        'Buenos Aires': { title: 'Buenos Aires Criticality Accident (1983)', text: 'An operator at the RA-2 research reactor facility made errors during a fuel rod reconfiguration, causing a criticality accident. The operator absorbed a fatal dose of radiation, and others were injured.' },
+        'Tokaimura': { title: 'Tokaimura Nuclear Accident (1999)', text: 'A criticality accident at a uranium reprocessing facility in Tokaimura, Japan. Workers improperly mixed a uranyl nitrate solution, causing a nuclear chain reaction that lasted for 20 hours. Two of the three workers involved died.' },
+        'Mayapuri': { title: 'Mayapuri Radiological Accident (2010)', text: 'A serious radiological accident in India where a university research irradiator containing Cobalt-60 was improperly sold as scrap metal. One person died and others were seriously injured from handling the source.' },
+        'Vandellós': { title: 'Vandellós I Nuclear Incident (1989)', text: 'A fire in the turbine generator of the Vandellós I nuclear power plant in Spain destroyed safety systems and led to the reactor being permanently shut down.' },
+        'Davis-Besse': { title: 'Davis-Besse "Hole-in-the-Head" Incident (2002)', text: 'Maintenance workers at the Davis-Besse Nuclear Power Plant in Ohio, USA, discovered that boric acid had leaked from control rod drive mechanisms and eaten a large cavity into the reactor pressure vessel head, leaving only a thin layer of stainless steel cladding to prevent a major loss-of-coolant accident.' },
+        'THORP': { title: 'THORP Plant Leak (2005)', text: 'A large volume of highly radioactive liquor containing plutonium and uranium dissolved in nitric acid was discovered to have leaked from a fractured pipe at the Thermal Oxide Reprocessing Plant (THORP) at Sellafield, UK. The leak had gone undetected for several months.' },
+        'Blayais': { title: 'Blayais Nuclear Power Plant Flood (1999)', text: 'A flood caused by a storm surge from Cyclone Martin inundated parts of the Blayais Nuclear Power Plant in France, leading to a loss of off-site power and knocking out several safety-related systems.' },
+        'Forsmark': { title: 'Forsmark Nuclear Power Plant Incident (2006)', text: 'An electrical fault at the Forsmark plant in Sweden caused a loss of external power. A design flaw in the backup power system meant two of the four emergency diesel generators failed to start, revealing a critical safety vulnerability.' },
+        'Ascó': { title: 'Ascó Nuclear Power Plant Contamination (2008)', text: 'A radioactive contamination incident at the Ascó plant in Spain. A leak during refueling led to the contamination of the site and surrounding areas, which was not immediately reported.' },
+        'Tricastin': { title: 'Tricastin Nuclear Power Plant Leaks (2008)', text: 'A series of incidents at the Tricastin plant in France, including a leak of unenriched uranium solution into the ground and rivers.' },
+        'Gravelines': { title: 'Gravelines Incident (2009)', text: 'During a refueling operation at the Gravelines plant in France, a fuel bundle became snagged on an internal reactor structure, leading to a temporary shutdown and evacuation of the reactor building.' },
+        'Penly': { title: 'Penly Nuclear Power Plant Fire (2012)', text: 'A fire broke out in the primary coolant pump of a reactor at the Penly plant in France, leading to an automatic reactor shutdown and a minor radioactive water leak.' },
+    };
+
 
     // --- Tab Switching Logic --- //
     const tabs = document.querySelectorAll('.tab-button');
@@ -917,6 +973,53 @@ document.addEventListener('DOMContentLoaded', () => {
         decayTimeEl.addEventListener('input', calculateDecay);
         updateDecaySlider();
     }
+
+    // --- INES Modal Logic --- //
+    const inesDetailsContainer = document.getElementById('ines-details-container');
+    if (inesDetailsContainer) {
+        inesDetailsContainer.innerHTML = `
+            <div class="info-card bg-pink-50 border-pink-500"><p><strong class="text-pink-800">Level 7 (Major Accident):</strong> Major release of radioactive material with widespread health and environmental effects. <br><em class="text-pink-700">Examples: <a href="#" class="ines-event-link" data-event="Chernobyl">Chernobyl (1986)</a>, <a href="#" class="ines-event-link" data-event="Fukushima">Fukushima (2011)</a>.</em></p></div>
+            <div class="info-card bg-red-50 border-red-500"><p><strong class="text-red-800">Level 6 (Serious Accident):</strong> Significant release of radioactive material likely to require implementation of planned countermeasures. <br><em class="text-red-700">Example: <a href="#" class="ines-event-link" data-event="Kyshtym">Kyshtym Disaster (1957)</a>.</em></p></div>
+            <div class="info-card bg-orange-50 border-orange-500"><p><strong class="text-orange-800">Level 5 (Accident with Wider Consequences):</strong> Limited release of radioactive material; several deaths from radiation. <br><em class="text-orange-700">Examples: <a href="#" class="ines-event-link" data-event="Chalk River">Chalk River (1952)</a>, <a href="#" class="ines-event-link" data-event="Windscale">Windscale Fire (1957)</a>, <a href="#" class="ines-event-link" data-event="Three Mile Island">Three Mile Island (1979)</a>, <a href="#" class="ines-event-link" data-event="Goiânia">Goiânia Accident (1987)</a>.</em></p></div>
+            <div class="info-card bg-amber-50 border-amber-500"><p><strong class="text-amber-800">Level 4 (Accident with Local Consequences):</strong> Minor release of radioactive material; at least one death from radiation. <br><em class="text-amber-700">Examples: <a href="#" class="ines-event-link" data-event="Sellafield">Sellafield (1955-79)</a>, <a href="#" class="ines-event-link" data-event="SL-1">SL-1 (1961)</a>, <a href="#" class="ines-event-link" data-event="Saint-Laurent">Saint-Laurent (1969, 1980)</a>, <a href="#" class="ines-event-link" data-event="Buenos Aires">Buenos Aires (1983)</a>, <a href="#" class="ines-event-link" data-event="Tokaimura">Tokaimura (1999)</a>, <a href="#" class="ines-event-link" data-event="Mayapuri">Mayapuri (2010)</a>.</em></p></div>
+            <div class="info-card bg-yellow-50 border-yellow-500"><p><strong class="text-yellow-800">Level 3 (Serious Incident):</strong> Severe contamination/overexposure of workers. <br><em class="text-yellow-700">Examples: <a href="#" class="ines-event-link" data-event="Vandellós">Vandellós I (1989)</a>, <a href="#" class="ines-event-link" data-event="Davis-Besse">Davis-Besse (2002)</a>, <a href="#" class="ines-event-link" data-event="THORP">THORP plant leak (2005)</a>.</em></p></div>
+            <div class="info-card bg-lime-50 border-lime-500"><p><strong class="text-lime-800">Level 2 (Incident):</strong> Significant failures in safety provisions or contamination. <br><em class="text-lime-700">Examples: <a href="#" class="ines-event-link" data-event="Blayais">Blayais flood (1999)</a>, <a href="#" class="ines-event-link" data-event="Forsmark">Forsmark failure (2006)</a>, <a href="#" class="ines-event-link" data-event="Ascó">Ascó contamination (2008)</a>.</em></p></div>
+            <div class="info-card bg-green-50 border-green-500"><p><strong class="text-green-800">Level 1 (Anomaly):</strong> Anomaly beyond the authorized operating regime. <br><em class="text-green-700">Examples: <a href="#" class="ines-event-link" data-event="Tricastin">Tricastin leak (2008)</a>, <a href="#" class="ines-event-link" data-event="Gravelines">Gravelines fuel snag (2009)</a>, <a href="#" class="ines-event-link" data-event="Penly">Penly fire (2012)</a>.</em></p></div>
+        `;
+    }
+
+    const modal = document.getElementById('ines-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+
+    function openModal(eventName) {
+        const eventData = INES_EVENTS_DATA[eventName];
+        if (eventData) {
+            modalTitle.textContent = eventData.title;
+            modalBody.textContent = eventData.text;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('ines-event-link')) {
+            e.preventDefault();
+            openModal(e.target.dataset.event);
+        }
+    });
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
 
     // Initial calls for all calculators
     calculateAnnualDose();
